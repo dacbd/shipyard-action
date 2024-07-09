@@ -59,9 +59,7 @@ if timeout_minutes:
         timeout_minutes = int(timeout_minutes)
     except Exception:
         exit(
-            'ERROR: the SHIPYARD_TIMEOUT provided ("{}") is not an integer'.format(
-                timeout_minutes
-            )
+            f'ERROR: the SHIPYARD_TIMEOUT provided ("{timeout_minutes}") is not an integer'
         )
 else:
     timeout_minutes = 60
@@ -92,12 +90,12 @@ def fetch_shipyard_environment():
             args["name"] = app_name
         response = api_instance.list_environments(**args).to_dict()
     except ApiException as e:
-        return exit("ERROR: issue while listing environments via API: {}".format(e))
+        return exit(f"ERROR: issue while listing environments via API: {e}")
 
     # Exit if any errors
     errors = response.get("errors")
     if errors:
-        return exit("ERROR: {}".format(errors[0]["title"]))
+        return exit(f"ERROR: {errors[0]["title"]}")
 
     # Verify an environment was found
     if not len(response["data"]):
@@ -113,7 +111,7 @@ def fetch_shipyard_environment():
     # Verify all the needed fields are available
     for param in ("bypass_token", "url", "ready", "stopped", "retired"):
         if param not in environment_data:
-            return exit("ERROR: no {} found!".format(param))
+            return exit(f"ERROR: no {param} found!")
 
     return environment_id, environment_data
 
@@ -124,7 +122,7 @@ def restart_environment(environment_id):
     try:
         api_instance.restart_environment(environment_id)
     except ApiException as e:
-        exit("ERROR: issue while restart the environment: {}".format(e))
+        exit(f"ERROR: issue while restart the environment: {e}")
 
 
 def wait_for_environment():
@@ -144,7 +142,7 @@ def wait_for_environment():
         now = datetime.now()
         # Check if the timeout has elapsed
         if datetime.now() > timeout_end:
-            exit("{} minute timeout elapsed, exiting!".format(timeout_minutes))
+            exit(f"{timeout_minutes} minute timeout elapsed, exiting!")
 
         # Auto-restart the environment once if indicated
         if all([environment_data["retired"], auto_restart, not was_restarted]):
@@ -156,8 +154,8 @@ def wait_for_environment():
 
         # Wait 15 seconds
         seconds_waited = int((now - start).total_seconds())
-        wait_string = " ({}s elapsed)".format(seconds_waited) if seconds_waited else ""
-        print("Waiting for Shipyard environment...{}".format(wait_string))
+        wait_string = f" ({seconds_waited}s elapsed)" if seconds_waited else ""
+        print(f"Waiting for Shipyard environment...{wait_string}")
         time.sleep(15)
 
         # Check on the environment again
@@ -202,13 +200,13 @@ def main():
                     f"SHIPYARD_DOMAIN={environment_data["url"]}",
                 ]
                 + shipyard_additional_urls_vars
-                + ["SHIPYARD_ENVIRONMENT_COMMIT_HASH={}".format(commit_hash)]
+                + [f"SHIPYARD_ENVIRONMENT_COMMIT_HASH={commit_hash}"]
                 if commit_hash
                 else []
             )
         )
 
-    print("Shipyard environment data written to {}!".format(bash_env_path))
+    print(f"Shipyard environment data written to {bash_env_path}!")
 
 
 if __name__ == "__main__":
