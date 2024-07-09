@@ -187,19 +187,21 @@ def main():
         print("WARNING: unable to retrieve commit hash")
         commit_hash = None
 
+    additional_urls = environment_data.get("additional_urls", {})
+    shipyard_additional_urls_vars = [ f"SHIPYARD_DOMAIN_{k.upper().replace("-", "_")}={v}" for (k,v) in additional_urls.items() ]
     # Write the data to the job's environment
     with open(bash_env_path, "a") as bash_env:
         bash_env.write(
             "\n".join(
                 [
-                    "SHIPYARD_BYPASS_TOKEN={}".format(environment_data["bypass_token"]),
-                    "SHIPYARD_ENVIRONMENT_ID={}".format(environment_id),
-                    "SHIPYARD_ENVIRONMENT_URL={}".format(environment_data["url"]),
-                    "SHIPYARD_ENVIRONMENT_READY={}".format(environment_data["ready"]),
-                    "SHIPYARD_ENVIRONMENT_RETIRED={}".format(
-                        environment_data["retired"]
-                    ),
+                    f"SHIPYARD_BYPASS_TOKEN={environment_data["bypass_token"]}",
+                    f"SHIPYARD_ENVIRONMENT_ID={environment_id}",
+                    f"SHIPYARD_ENVIRONMENT_URL={environment_data["url"]}",
+                    f"SHIPYARD_ENVIRONMENT_READY={environment_data["ready"]}",
+                    f"SHIPYARD_ENVIRONMENT_RETIRED={environment_data["retired"]}",
+                    f"SHIPYARD_DOMAIN={environment_data["url"]}",
                 ]
+                + shipyard_additional_urls_vars
                 + ["SHIPYARD_ENVIRONMENT_COMMIT_HASH={}".format(commit_hash)]
                 if commit_hash
                 else []
