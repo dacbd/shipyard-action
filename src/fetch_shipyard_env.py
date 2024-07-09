@@ -92,28 +92,28 @@ def fetch_shipyard_environment():
             args["name"] = app_name
         response = api_instance.list_environments(**args).to_dict()
     except ApiException as e:
-        exit("ERROR: issue while listing environments via API: {}".format(e))
+        return exit("ERROR: issue while listing environments via API: {}".format(e))
 
     # Exit if any errors
     errors = response.get("errors")
     if errors:
-        exit("ERROR: {}".format(errors[0]["title"]))
+        return exit("ERROR: {}".format(errors[0]["title"]))
 
     # Verify an environment was found
     if not len(response["data"]):
-        exit("ERROR: no matching Shipyard environment found")
+        return exit("ERROR: no matching Shipyard environment found")
 
     # Verify the data is where we expect
     try:
         environment_id = response["data"][0]["id"]
         environment_data = response["data"][0]["attributes"]
     except Exception:
-        exit("ERROR: invalid response data structure")
+        return exit("ERROR: invalid response data structure")
 
     # Verify all the needed fields are available
     for param in ("bypass_token", "url", "ready", "stopped", "retired"):
         if param not in environment_data:
-            exit("ERROR: no {} found!".format(param))
+            return exit("ERROR: no {} found!".format(param))
 
     return environment_id, environment_data
 
